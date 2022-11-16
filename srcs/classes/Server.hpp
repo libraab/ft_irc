@@ -26,19 +26,19 @@ class Server
 		void send_errors(Client *client, string code, string arg, string arg2, int error_type);
 		void send_error(string code, string nickname, string to_send, int client_fd);
 		void send_error_with_arg(string code, string nickname, string arg, string to_send, int client_fd);
+		Channel *get_channel_ptr_by_channel_name(string channel_name);
 		Client *get_client_by_nick(string name);
 		bool channel_exist(string name);
-		Channel *get_channel_ptr_by_channel_name(string channel_name);
-		const vector<string> &get_channel_names() const;
+		vector<Channel *> const &get_channels() const;
+		void add_channel_to_server(Channel *channel);
 
 
 		int 				socket_fd;
 		map<int, Client *> 	client;
-		map<int, Channel *> channels;
 		size_t				occ;
 
 	private:
+		vector<Channel *> _channels;
 		vector<int> 	_clients_fds;
-		vector<string> 	_channel_names;
 		string 			_password;
 };

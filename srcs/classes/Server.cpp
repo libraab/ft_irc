@@ -15,14 +15,17 @@ Server::~Server(void) {
 void Server::set_password(string password) {
 	_password = password;
 }
+void Server::add_channel_to_server(Channel *channel) {
+	_channels.push_back(channel);
+}
 //******************************//
 // 		  G E T T E R S		    //
 //******************************//
 string const &Server::get_password(void) const {
 	return (_password);
 }
-const vector<string> &Server::get_channel_names() const {
-	return (_channel_names);
+vector<Channel *> const &Server::get_channels() const {
+	return (_channels);
 }
 //******************************//
 // 	    F U N C T I O N S	    //
@@ -88,63 +91,66 @@ void Server::registration_irssi(string buf, Client *client) // registration pars
 	}
 	if (client->is_registered(_password)) {
 		string to_send = ":localhost 001 " + client->get_nick() + "\r\n" + "\"Welcome to the Internet Relay Chat Network " + client->get_nick() + "!" + client->get_user() + "@localhost" + "\"" + "\r\n";
-		send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
+		ft_send(client->get_fd(), to_send.c_str());
 	}
 }
 //----------------------------------------------------------------------------
 void Server::registration_netcat(string buf, Client *client) // registration parsing
 {
-	buf.erase(buf.length() - 1);
+	buf.erase(buf.length() - 1); // efface le dernier char ""
 	vector<string> tab = split(buf, ' ');
 	
 	if (tab.size() >= 2) {
 		if (tab[0] == "PASS") {
 			client->set_pass(tab[1]);
-			cout << "pass is {" << tab[1] << "}" << endl;
 		}
 		else if (tab[0] == "NICK" && client->password_is_set(_password)) {
-			client->set_nick(tab[1]);
-			cout << "nick is {" << tab[1] << "}" << endl;
+			client->set_nick(tab[1]); // to do :verifier si nick est deja pri ou pas 
 		}
 		else if (tab[0] == "USER" && client->password_is_set(_password)) {
-			client->set_user(tab[1]);
-			cout << "user is {" << tab[1] << "}" << endl;
+			client->set_user(tab[1]); // Q? si 2 clients peuvent avoir le meme username
 		}
 	}
 	else
-		send(client->get_fd(), "Error: Not enough argument\r\n", 26, 0);    
+		ft_send(client->get_fd(), "Error: Not enough argument\r\n");    
 	if (client->is_registered(_password)) {
 		string to_send = ":localhost 001 " + client->get_nick() + "\r\n" + "\"Welcome to the Internet Relay Chat Network " + client->get_nick() + "!" + client->get_user() + "@localhost" + "\"" + "\r\n";
-		send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
+		ft_send(client->get_fd(), to_send.c_str());
 	}
 }
 //----------------------------------------------------------------------------
 void Server::client_send_msg(int client_fd, string buf, Server *server) {
-	Cmd *command = new Cmd(buf);
 	vector<string> tab;
 	if (buf.length() > 510) {
-		send(client_fd, "Error: Exceeded the limit (512 char)\r\n", 35, 0);
-		return;
+		ft_send(client_fd, "Error: Exceeded the limit (512 char)\r\n");
+		return ;
 	}
-	if (buf.find('\n') == string::npos)
+	if (buf[0] == '\n')
+		return ;
+	if (buf.find('\n') == string::npos) // ask danh--->
 		client[client_fd]->set_msg(buf);
 	else if (!client[client_fd]->get_msg().empty()) {
 		client[client_fd]->set_msg(buf);
 		tab.push_back(client[client_fd]->get_msg());
 	}
 	else
-		client[client_fd]->set_msg(buf);
+		client[client_fd]->set_msg(buf); // <-----
+
 	if (buf.find("\r\n") != string::npos) { 			//   <------------- IRSSI
 		if (!client[client_fd]->is_registered(_password))
 			registration_irssi(buf, client[client_fd]);
-		else 
+		else {
+			Cmd *command = new Cmd(buf);
 			command->exec_command(buf, client[client_fd], server);
+		}
 	}
 	else {												//   <------------- NETCAT
 		if (!client[client_fd]->is_registered(_password))
 			registration_netcat(buf, client[client_fd]);
-		else
+		else {
+			Cmd *command = new Cmd(buf);
 			command->exec_command(buf, client[client_fd], server);
+		}
 	}
 }
 //----------------------------------------------------------------------------
@@ -166,43 +172,40 @@ Client *Server::get_client_by_nick(string nick) {
 	}
 	return (nullptr);
 }
-
 //----------------------------------------------------------------------------
 void	Server::send_error(string code, string nickname, string to_send, int client_fd) {
 	string message = ":localhost " + code + " " + nickname + " :" + to_send + "\r\n";
-	send(client_fd, message.c_str(), message.length(), 0);
+	ft_send(client_fd, message.c_str());
 }
 //----------------------------------------------------------------------------
 void	Server::send_error_with_arg(string code, string nickname, string arg, string to_send, int client_fd) {
 
 	string message = ":localhost " + code + " " + nickname + " " + arg + " :" + to_send + "\r\n";
-	send(client_fd, message.c_str(), message.length(), 0);
+	ft_send(client_fd, message.c_str());
 }
 
 //--------------------------------------------------------------------
 void Server::send_reply(string nickname, string username, string command, string arg, int client_fd)
 {
 	string	message = ":" +  nickname + "!" + username + "@127.0.0.1 " + command + " :" + arg + "\r\n";
-	send(client_fd, message.c_str(), message.length(), 0);
+	ft_send(client_fd, message.c_str());
 }
 //--------------------------------------------------------------------
 bool Server::channel_exist(string name) {
-	if (find(get_channel_names().begin(), get_channel_names().end(), name) != get_channel_names().end())
-	{
-		cout << "exist"<< endl;
-		return (true);
+	for (size_t i = 0; i < get_channels().size(); i++) {
+		if (get_channels()[i]->get_name() == name) {
+			return (true);
+		}
 	}
-	
-	cout << "does not exist"<< endl;
 	return (false);
 }
-
+//--------------------------------------------------------------------
 Channel *Server::get_channel_ptr_by_channel_name(string channel_name)
 {
-	for (map<int, Channel *>::iterator it = channels.begin(); it != channels.end(); it++)
+	for (size_t i = 0; i < get_channels().size(); i++)
 	{
-		if(it->second->get_name() == channel_name)
-			return (it->second);
+		if(get_channels()[i]->get_name() == channel_name)
+			return (get_channels()[i]);
 	}
 	return (nullptr);
 }

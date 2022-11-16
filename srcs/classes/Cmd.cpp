@@ -15,32 +15,38 @@ Cmd::~Cmd(void) {
 //******************************//
 void Cmd::join_cmd(vector<string> arg, Client *client, Server *server) {
     if (arg.size() == 1) {
-        server->send_error("461", client->get_nick(), "not enough arg", client->get_fd());
+        server->send_error("461", client->get_nick(), "Not enough argument given", client->get_fd());
+        return;
     }
+    else if (arg[1][0] != '#') {
+        server->send_error("", client->get_nick(), "Wrong format", client->get_fd());
+        return;
+    }
+    else
+        arg[1] = arg[1].substr(1); //remove the '#' in #channel_name
     if (!server->channel_exist(arg[1]))
     {
         Channel *channel = new Channel(arg[1]);
-        channel->add_nick_to_channel(client->get_nick());
+        channel->add_to_nick_list_in_channel(client->get_nick());
         if (arg.size() > 2)
-        {
-            cout << "entered here" << endl;
-            channel->set_topic(arg[2]);
-        }
+            channel->set_topic(arg[2]); // prendre tt ce qui reste apres nom du channel
+        server->add_channel_to_server(channel);
         server->send_reply(client->get_nick(), client->get_user(), "JOIN", arg[1], client->get_fd());
         string to_send = ":localhost 353 " + client->get_user() + " = " + arg[1] + " :@" + client->get_nick() + "\r\n";
-        send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
+        ft_send(client->get_fd(), to_send.c_str());
         server->send_error_with_arg("366", client->get_nick(), arg[1], "End of /NAMES list", client->get_fd());
         server->send_error_with_arg("332", client->get_nick(), arg[1], "No topic set", client->get_fd());
     }
     else {
-        server->get_channel_ptr_by_channel_name(arg[1])->add_nick_to_channel(client->get_nick());
+        Channel *chan = server->get_channel_ptr_by_channel_name(arg[1]);
+        chan->add_to_nick_list_in_channel(client->get_nick());
         for (map<int, Client *>::iterator it = server->client.begin(); it != server->client.end(); it++) {
             if (it->second->get_fd() != client->get_fd())
                 server->send_reply(client->get_nick(), client->get_user(), "JOIN", arg[1], it->second->get_fd()); // dire aux autres qlq a join le channel
             else {
                 server->send_reply(client->get_nick(), client->get_user(), "JOIN", arg[1], client->get_fd());
-                string to_send = ":localhost 353 " + client->get_user() + " = " + arg[1] + " :@" + client->get_nick() + "\r\n";
-                send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
+                string to_send = ":localhost 353 " + client->get_user() + " = " + arg[1] + " :" + chan->display_nicknames() + "\r\n";
+                ft_send(client->get_fd(), to_send.c_str());
                 server->send_error_with_arg("366", client->get_nick(), arg[1], "End of /NAMES list", client->get_fd());
                 server->send_error_with_arg("332", client->get_nick(), arg[1], "No topic set", client->get_fd());
             }
@@ -81,7 +87,6 @@ void Cmd::topic_cmd(vector<string> arg, Client *client, Server *server) {
         server->send_error("461", server->client[client->get_fd()]->get_nick(), "not enough arg", client->get_fd());
         return ;
     }
-  //  Channel *chan = server->get_channel_ptr_by_channel_name(arg[1])->set_topic(arg[1]);
     server->send_reply(client->get_nick(), client->get_user(), "TOPIC", arg[1], client->get_fd());
 }
 void Cmd::list_cmd(vector<string> arg, Client *client, Server *server) {
@@ -95,7 +100,6 @@ void Cmd::nick_cmd(vector<string> arg, Client *client, Server *server) {
 }
 //--------------------------------------------------------------------
 void Cmd::exec_command(string buf, Client *client, Server *server) {
-	cout << "exec command" << endl;
     if (buf.find("\r\n") != string::npos)
         buf = buf.substr(0, buf.length() - 1);
     buf = buf.substr(0, buf.length() - 1);
@@ -121,7 +125,9 @@ void Cmd::exec_command(string buf, Client *client, Server *server) {
         mode_cmd(cmd, client, server);
     else if (cmd[0] == "KILL")
         kill_cmd(cmd, client, server);
+    else if (cmd[0] == "PING")
+        ft_send(client->get_fd(), ":localhost PONG :localhost\r\n");
     else
-        send(client->get_fd(), "Error: command unknown\r\n", 26, 0); 
+        ft_send(client->get_fd(), "Error: command unknown\r\n");
 }
 //--------------------------------------------------------------------

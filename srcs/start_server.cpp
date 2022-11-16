@@ -11,20 +11,20 @@ int check_port(char *port_input)
 	return (port);
 }
 
-void    print_buf(string const & buf)
+void    print_buf(string const & buf, int client_fd)
 {
-    if (buf == "PING localhost")
+    if (buf == "PING localhost" || buf == "\n")
         return;
     if (buf.empty())
     {
         cout << "BUFF EMPTY" << endl;
         return;
     }
-    cout << "-------------------" << endl;
-    cout << black bg_red << "|    RECEIVED     |" << reset << endl;
-    cout << "-------------------" << endl;
+    cout << "--------------------------" << endl;
+    cout << black bg_red << "| RECEIVED FROM CLIENT " << client_fd << " |" << reset << endl;
+    cout << "--------------------------" << endl;
     cout << buf ;
-    cout << "-------------------" << endl;
+    cout << "--------------------------" << endl;
 }
 
 void start_server(Server *server, char *port_input)
@@ -69,7 +69,7 @@ void start_server(Server *server, char *port_input)
 			client_fd = it->first;
 			if (FD_ISSET(client_fd, &read_fds)) {
 				if (recv(client_fd, buf, 1024, 0)) { 
-					print_buf(buf);
+					print_buf(buf, client_fd);
 					server->client_send_msg(client_fd, buf, server);
 				}
 				else

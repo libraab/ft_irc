@@ -13,8 +13,9 @@ class Channel
         const string &get_name() const;
         const vector<string> &get_nicknames() const;
         const map<int, Client *> &get_users() const;
-        void add_nick_to_channel(string nick);
+        void add_to_nick_list_in_channel(string nick);
         void delete_nick_from_channel(string nick);
+        string display_nicknames() const;
 
     private:
         string _name;

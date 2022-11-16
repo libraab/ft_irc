@@ -40,11 +40,22 @@ void	print_vector(vector<string> vec) {
 	cout << vec << endl;
 }
 
-void remove_r(string & str) {
+void    remove_r(string & str) {
 	size_t r = 1;
 	while (r != string::npos) {
 		r = str.find('\r');
 		if (r != string::npos)
 			str.erase(r, 1);
 	}
+}
+
+void    ft_send(int fd, string const & msg)
+{
+	if (fd == -1 ||  msg == ":localhost PONG :localhost")
+        return ;
+	if (send(fd, msg.c_str(), msg.length(), 0) == -1)
+		cerr << "Send failed ❌" << endl;
+    cout << "-------------------" << endl;
+    cout << black bg_green << "| SEND TO CLIENT " << fd <<"|" << reset << endl<< msg.substr(0, msg.length()-1) << endl;
+    cout << "-------------------" << endl;
 }
