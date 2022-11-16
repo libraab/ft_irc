@@ -8,14 +8,12 @@ class Client
 		~Client();
 
 		void set_fd(int const & fd);
-		void set_msg(string const & msg);
 		void set_pass(string const & pass);
 		void set_nick(string const & nick);
 		void set_user(string const & user);
 		void set_mode(string const & mode);
 
 		int const &	get_fd() const;
-		string const &	get_msg() const;
 		string const &	get_pass() const;
 		string const &	get_nick() const;
 		string const &	get_user() const;
@@ -29,7 +27,6 @@ class Client
 	private:
 
 		int _fd;
-		string _msg;
 		string _pass;
 		string _nick;
 		string _user;

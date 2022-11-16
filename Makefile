@@ -12,10 +12,17 @@ SRCS_FOLDER		= srcs/
 SRCS_FILES =	main.cpp \
 				utils.cpp \
 				start_server.cpp\
-				classes/Cmd.cpp  \
 				classes/Server.cpp\
 				classes/Client.cpp \
 				classes/Channel.cpp \
+				classes/Commands/Cmd.cpp\
+				classes/Commands/join.cpp\
+				classes/Commands/mode.cpp\
+				classes/Commands/notice.cpp\
+				classes/Commands/part.cpp\
+				classes/Commands/privmsg.cpp\
+				classes/Commands/quit.cpp\
+				classes/Commands/topic.cpp\
 
 SRCS 			= $(addprefix $(SRCS_FOLDER),$(SRCS_FILES))
 OBJS			= $(SRCS:.cpp=.o)
@@ -41,10 +48,10 @@ RM			= rm -rf
 #➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖ #
 $(NAME):	$(OBJS)
 			@$(COMP) $(FLAGS) $(OBJS) -o $(NAME)
-			@printf "➖➖➖➖➖➖➖➖➖➖➖➖➖                      \n"
+			@printf "➖➖➖➖➖➖➖➖➖➖➖➖➖                         \n"
 			@printf $(green)
 			@printf "SERVER'S FILES COMPILED ✅\n"
-			@printf "➖➖➖➖➖➖➖➖➖➖➖➖➖                      \n"
+			@printf "➖➖➖➖➖➖➖➖➖➖➖➖➖                         \n"
 			@printf $(reset)
 
 all:		$(NAME)

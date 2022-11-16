@@ -15,36 +15,43 @@ Server::~Server(void) {
 void Server::set_password(string password) {
 	_password = password;
 }
-void Server::add_channel_to_server(Channel *channel) {
-	_channels.push_back(channel);
-}
 //******************************//
 // 		  G E T T E R S		    //
 //******************************//
 string const &Server::get_password(void) const {
 	return (_password);
 }
-vector<Channel *> const &Server::get_channels() const {
+vector<Channel *> &Server::get_channels() {
 	return (_channels);
 }
 //******************************//
 // 	    F U N C T I O N S	    //
 //******************************//
-void Server::delete_client(void) {
+void Server::add_channel_to_server(Channel *channel) {
+	_channels.push_back(channel);
+}
+void Server::delete_channel_from_server(Channel *channel) {
+	for (size_t i = 0; i < _channels.size(); i++) {
+		if (_channels[i] == channel)
+			// _channels.erase(i);
+			;
+	}
+}
+void Server::delete_client_from_server(void) {
 	vector<int>::iterator it = _clients_fds.begin();
 	vector<int>::iterator ite = _clients_fds.end();
 	map<int, Client *>::iterator client_it;
 
 	for (; it != ite; it++) {
-		client_it = client.find(*it);
+		client_it = client_list.find(*it);
 		delete client_it->second;
 		close(client_it->first);
-		client.erase(client_it->first);
+		client_list.erase(client_it->first);
 	}
 	_clients_fds.clear();
 }
 //----------------------------------------------------------------------------
-void Server::server_accept(void) {
+void Server::add_client_to_server(void) {
 	Client 				*user = new Client();
 	struct sockaddr_in 	addr;
 	socklen_t 			addr_len = sizeof(addr);
@@ -52,8 +59,8 @@ void Server::server_accept(void) {
 
 	new_fd = accept(socket_fd, (struct sockaddr *)&addr, &addr_len);
 	fcntl(new_fd, F_SETFL, O_NONBLOCK);
-	client.insert(pair<int, Client *>(new_fd, user));
-	client[new_fd]->set_fd(new_fd);
+	client_list.insert(pair<int, Client *>(new_fd, user));
+	client_list[new_fd]->set_fd(new_fd);
 	cout << "A new client is connected to the server" << endl;
 }
 //----------------------------------------------------------------------------
@@ -99,7 +106,6 @@ void Server::registration_netcat(string buf, Client *client) // registration par
 {
 	buf.erase(buf.length() - 1); // efface le dernier char ""
 	vector<string> tab = split(buf, ' ');
-	
 	if (tab.size() >= 2) {
 		if (tab[0] == "PASS") {
 			client->set_pass(tab[1]);
@@ -127,50 +133,31 @@ void Server::client_send_msg(int client_fd, string buf, Server *server) {
 	}
 	if (buf[0] == '\n')
 		return ;
-	if (buf.find('\n') == string::npos) // ask danh--->
-		client[client_fd]->set_msg(buf);
-	else if (!client[client_fd]->get_msg().empty()) {
-		client[client_fd]->set_msg(buf);
-		tab.push_back(client[client_fd]->get_msg());
-	}
-	else
-		client[client_fd]->set_msg(buf); // <-----
-
 	if (buf.find("\r\n") != string::npos) { 			//   <------------- IRSSI
-		if (!client[client_fd]->is_registered(_password))
-			registration_irssi(buf, client[client_fd]);
+		if (!client_list[client_fd]->is_registered(_password))
+			registration_irssi(buf, client_list[client_fd]);
 		else {
-			Cmd *command = new Cmd(buf);
-			command->exec_command(buf, client[client_fd], server);
+			Cmd *command = new Cmd;
+			command->exec_command(buf, client_list[client_fd], server);
 		}
 	}
 	else {												//   <------------- NETCAT
-		if (!client[client_fd]->is_registered(_password))
-			registration_netcat(buf, client[client_fd]);
+		if (!client_list[client_fd]->is_registered(_password))
+			registration_netcat(buf, client_list[client_fd]);
 		else {
-			Cmd *command = new Cmd(buf);
-			command->exec_command(buf, client[client_fd], server);
+			Cmd *command = new Cmd();
+			command->exec_command(buf, client_list[client_fd], server);
 		}
 	}
 }
 //----------------------------------------------------------------------------
 void Server::client_disconnect(int socket_fd) {
 	_clients_fds.push_back(socket_fd);
-	if (client[socket_fd]->get_user().empty())
+	if (client_list[socket_fd]->get_user().empty())
 		cout << "Client is disconnected" << endl;
 	else
-		cout << client[socket_fd]->get_nick() + " is disconnected" << endl;
-}
-//----------------------------------------------------------------------------
-Client *Server::get_client_by_nick(string nick) {
-	map<int, Client *>::iterator it = client.begin();
-	map<int, Client *>::iterator ite = client.end();
-
-	for (;it != ite; it++) {
-		if ((*it).second->get_nick() == nick)
-			return ((*it).second);
-	}
-	return (nullptr);
+		cout << client_list[socket_fd]->get_nick() + " is disconnected" << endl;
+	//delete_client_from_server();  //<-------------verifier si cette fct marche 
 }
 //----------------------------------------------------------------------------
 void	Server::send_error(string code, string nickname, string to_send, int client_fd) {
@@ -190,17 +177,19 @@ void Server::send_reply(string nickname, string username, string command, string
 	string	message = ":" +  nickname + "!" + username + "@127.0.0.1 " + command + " :" + arg + "\r\n";
 	ft_send(client_fd, message.c_str());
 }
-//--------------------------------------------------------------------
-bool Server::channel_exist(string name) {
-	for (size_t i = 0; i < get_channels().size(); i++) {
-		if (get_channels()[i]->get_name() == name) {
-			return (true);
-		}
+//----------------------------------------------------------------------------
+Client *Server::get_client(string client_name) {
+	map<int, Client *>::iterator it = client_list.begin();
+	map<int, Client *>::iterator ite = client_list.end();
+
+	for (;it != ite; it++) {
+		if ((*it).second->get_nick() == client_name)
+			return ((*it).second);
 	}
-	return (false);
+	return (nullptr);
 }
 //--------------------------------------------------------------------
-Channel *Server::get_channel_ptr_by_channel_name(string channel_name)
+Channel *Server::get_channel(string channel_name)
 {
 	for (size_t i = 0; i < get_channels().size(); i++)
 	{
@@ -209,3 +198,21 @@ Channel *Server::get_channel_ptr_by_channel_name(string channel_name)
 	}
 	return (nullptr);
 }
+//--------------------------------------------------------------------
+bool Server::channel_exist(string channel_name) {
+	for (size_t i = 0; i < get_channels().size(); i++) {
+		if (get_channels()[i]->get_name() == channel_name) {
+			return (true);
+		}
+	}
+	return (false);
+}
+//--------------------------------------------------------------------
+bool Server::client_exist(string client_name) {
+	for (map<int, Client *>::iterator it = client_list.begin(); it != client_list.end(); it++) {
+		if(it->second->get_nick() == client_name)
+			return (true);
+	}
+	return (false);
+}
+//---------------------------------------------------------------------

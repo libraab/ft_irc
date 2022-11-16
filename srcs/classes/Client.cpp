@@ -15,9 +15,6 @@ Client::~Client(void) {
 void Client::set_fd(int const &fd) {
 	_fd = fd;
 }
-void Client::set_msg(string const &msg) {
-	_msg += msg;
-}
 void Client::set_pass(string const &pass) {
 	_pass = pass;
 }
@@ -35,9 +32,6 @@ void Client::set_mode(string const &mode) {
 //******************************//
 int const & Client::get_fd() const {
 	return (_fd);
-}
-string const & Client::get_msg() const {
-	return (this->_msg);
 }
 const string & Client::get_nick(void) const {
 	return (this->_nick);

@@ -51,7 +51,7 @@ void    remove_r(string & str) {
 
 void    ft_send(int fd, string const & msg)
 {
-	if (fd == -1 ||  msg == ":localhost PONG :localhost")
+	if (fd == -1 ||  msg == ":localhost PONG :localhost\r\n")
         return ;
 	if (send(fd, msg.c_str(), msg.length(), 0) == -1)
 		cerr << "Send failed ❌" << endl;

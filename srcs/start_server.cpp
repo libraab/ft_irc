@@ -13,7 +13,7 @@ int check_port(char *port_input)
 
 void    print_buf(string const & buf, int client_fd)
 {
-    if (buf == "PING localhost" || buf == "\n")
+    if (buf == "PING localhost\r\n" || buf == "\n")
         return;
     if (buf.empty())
     {
@@ -56,16 +56,16 @@ void start_server(Server *server, char *port_input)
 		bzero(buf, 1024);
 		FD_ZERO(&read_fds);
 		FD_SET(server->socket_fd, &read_fds);
-		server->delete_client();
-		for (map<int, Client *>::iterator it = server->client.begin(); it != server->client.end(); it++) {
+		server->delete_client_from_server();
+		for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
 			client_fd = it->first;
 			FD_SET(client_fd, &read_fds);
 		}
-		if (select(server->client.size() + server->socket_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
+		if (select(server->client_list.size() + server->socket_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
 			failed_function("select");
 		if (FD_ISSET(server->socket_fd, &read_fds))
-			server->server_accept();
-		for (map<int, Client *>::iterator it = server->client.begin(); it != server->client.end(); it++) {
+			server->add_client_to_server();
+		for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
 			client_fd = it->first;
 			if (FD_ISSET(client_fd, &read_fds)) {
 				if (recv(client_fd, buf, 1024, 0)) { 

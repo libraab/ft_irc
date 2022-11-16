@@ -26,7 +26,7 @@ const string & Channel::get_topic() const {
 const string & Channel::get_name() const {
     return (_name);
 }
-const map<int, Client *> &Channel::get_users() const {
+map<int, Client *> &Channel::get_users() {
     return (_users);
 }
 //******************************//
