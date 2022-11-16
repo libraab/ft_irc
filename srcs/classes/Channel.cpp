@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "Client.hpp"
 
 //******************************//
 //   CONSTRUCTOR / DESTRUCTOR	//
@@ -25,24 +26,29 @@ const string & Channel::get_topic() const {
 const string & Channel::get_name() const {
     return (_name);
 }
-const vector<string> & Channel::get_nicknames() const {
-    return (_nicknames);
-}
 const map<int, Client *> &Channel::get_users() const {
     return (_users);
 }
 //******************************//
 // 	    F U N C T I O N S	    //
 //******************************//
-void Channel::add_to_nick_list_in_channel(string nick) {
-    _nicknames.push_back(nick);
+void Channel::add_user_to_channel(Client *usr) {
+    _users.insert(pair<int, Client *>((usr->get_fd()), usr));
 }
-void Channel::delete_nick_from_channel(string nick) {
-    _nicknames.erase(remove(_nicknames.begin(), _nicknames.end(), nick), _nicknames.end());
+void Channel::delete_user_from_channel(int client_fd) {
+    _users.erase(client_fd);
 }
-string Channel::display_nicknames() const {
+string Channel::display_nicknames() {
     string nicknames;
-    for(size_t i = 0; i < _nicknames.size(); i++)
-        nicknames += _nicknames[i] + ' ';
+    for (map<int, Client *>::iterator it = _users.begin(); it != _users.end(); it++) {
+        nicknames += it->second->get_nick() + ' ';
+    }
     return (nicknames.substr(0, nicknames.length() - 1));// return list des nicknames dans un channel
+}
+bool Channel::client_is_in_channel(int client_fd) {
+     for (map<int, Client *>::iterator it = _users.begin(); it != _users.end(); it++) {
+        if (it->first == client_fd)
+            return (true);
+    }
+    return (false);
 }
