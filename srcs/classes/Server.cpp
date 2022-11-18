@@ -153,11 +153,11 @@ void Server::registration_irssi(string buf, Client *client)
 			client->set_pass(it->second[0]);
 		}
 		else if (it->first == "NICK") {
-			client->set_nick(it->second[0]);
-			for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
-				if (it->second->get_nick() == client->get_nick())
+			for (client_map_it itt = client_list.begin(); itt != client_list.end(); itt++) {
+				if (itt->second->get_nick() == it->second[0])
 					return;
 			}
+			client->set_nick(it->second[0]);
 		}
 		else if (it->first == "USER")
 			client->set_user(it->second[0]);
@@ -167,18 +167,19 @@ void Server::registration_irssi(string buf, Client *client)
 }
 //------------------------------------------------------------------------------
 void Server::registration_netcat(string buf, Client *client) {
-	buf.erase(buf.length() - 1); // efface le dernier char ""
+	cout << "in" << endl;
+	buf.erase(buf.length() - 1); 
 	vector<string> tab = split(buf, ' ');
 	if (tab.size() >= 2) {
 		if (tab[0] == "PASS") {
 			client->set_pass(tab[1]);
 		}
 		else if (tab[0] == "NICK" && client->password_is_set(_password)) {
-			client->set_nick(tab[1]); 
 			for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
-				if (it->second->get_nick() == client->get_nick())
+				if (it->second->get_nick() == tab[1])
 					return;
 			}
+			client->set_nick(tab[1]); 
 		}
 		else if (tab[0] == "USER" && client->password_is_set(_password)) {
 			client->set_user(tab[1]);
@@ -187,7 +188,11 @@ void Server::registration_netcat(string buf, Client *client) {
 	else
 		ft_send(client->get_fd(), "Error: Not enough argument\r\n");    
 	if (client->is_registered(_password))
+	{
+		cout << "rpl" << endl;
 		rpl_welcome(client->get_nick(), client->get_user(), client->get_fd());
+
+	}
 }
 //------------------------------------------------------------------------------
 void Server::client_send_msg(int client_fd, string buf, Server *server) {
@@ -222,6 +227,6 @@ void Server::client_disconnect(int socket_fd) {
 		cout << "Client is disconnected" << endl;
 	else
 		cout << client_list[socket_fd]->get_nick() + " is disconnected" << endl;
-	delete_client_from_server();  //<-------------verifier si cette fct marche 
+	//delete_client_from_server();  //<-------------verifier si cette fct marche 
 }
 //------------------------------------------------------------------------------

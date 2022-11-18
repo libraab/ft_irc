@@ -6,6 +6,7 @@ int main(int ac, char **av)
 
 	if (ac != 3)
 	{
+		//to do checker le bon range de port 
 		cerr << "Execution error ⛔️" << endl;
 		return (1);
 	}
