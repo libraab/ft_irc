@@ -25,18 +25,79 @@ vector<Channel *> &Server::get_channels() {
 	return (_channels);
 }
 //******************************//
-// 	    F U N C T I O N S	    //
+// 		  M E T H O D S 	    //
 //******************************//
 void Server::add_channel_to_server(Channel *channel) {
 	_channels.push_back(channel);
 }
+//------------------------------------------------------------------------------
 void Server::delete_channel_from_server(Channel *channel) {
-	for (size_t i = 0; i < _channels.size(); i++) {
-		if (_channels[i] == channel)
-			// _channels.erase(i);
-			;
+	for (vector<Channel *>::iterator it = _channels.begin(); it != _channels.end(); it++) {
+		if (*it == channel) {
+			_channels.erase(it);
+			break;
+		}
 	}
 }
+//------------------------------------------------------------------------------
+void	Server::send_error(string code, string nickname, string to_send, int client_fd) {
+	string message = ":localhost " + code + " " + nickname + " :" + to_send + "\r\n";
+	ft_send(client_fd, message.c_str());
+}
+//------------------------------------------------------------------------------
+void	Server::send_error_with_arg(string code, string nickname, string arg, string to_send, int client_fd) {
+
+	string message = ":localhost " + code + " " + nickname + " " + arg + " :" + to_send + "\r\n";
+	ft_send(client_fd, message.c_str());
+}
+
+//------------------------------------------------------------------------------
+void Server::send_reply(string nick, string user, string cmd, string arg, int fd)
+{
+	string	to_send = ":" +  nick + "!" + user + "@127.0.0.1 " + cmd + " :" + arg + "\r\n";
+	ft_send(fd, to_send.c_str());
+}
+//------------------------------------------------------------------------------
+void Server::rpl_welcome(string nick, string user, int fd) {
+	string to_send = ":localhost 001 " + nick + "\r\n" 
+	+ "\"Welcome to the Internet Relay Chat Network " + nick + "!" + user
+	+ "@localhost" + "\"" + "\r\n";
+	ft_send(fd, to_send.c_str());
+}
+//------------------------------------------------------------------------------
+Client *Server::get_client(string client_name) {
+	for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
+		if ((*it).second->get_nick() == client_name)
+			return ((*it).second);
+	}
+	return (nullptr);
+}
+//------------------------------------------------------------------------------
+Channel *Server::get_channel(string channel_name) {
+	for (size_t i = 0; i < get_channels().size(); i++) {
+		if(get_channels()[i]->get_name() == channel_name)
+			return (get_channels()[i]);
+	}
+	return (nullptr);
+}
+//------------------------------------------------------------------------------
+bool Server::channel_exist(string channel_name) {
+	for (size_t i = 0; i < get_channels().size(); i++) {
+		if (get_channels()[i]->get_name() == channel_name) {
+			return (true);
+		}
+	}
+	return (false);
+}
+//------------------------------------------------------------------------------
+bool Server::client_exist(string client_name) {
+	for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
+		if (it->second->get_nick() == client_name)
+			return (true);
+	}
+	return (false);
+}
+//------------------------------------------------------------------------------
 void Server::delete_client_from_server(void) {
 	vector<int>::iterator it = _clients_fds.begin();
 	vector<int>::iterator ite = _clients_fds.end();
@@ -50,7 +111,7 @@ void Server::delete_client_from_server(void) {
 	}
 	_clients_fds.clear();
 }
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Server::add_client_to_server(void) {
 	Client 				*user = new Client();
 	struct sockaddr_in 	addr;
@@ -63,8 +124,8 @@ void Server::add_client_to_server(void) {
 	client_list[new_fd]->set_fd(new_fd);
 	cout << "A new client is connected to the server" << endl;
 }
-//----------------------------------------------------------------------------
-void Server::registration_irssi(string buf, Client *client) // registration parsing
+//------------------------------------------------------------------------------
+void Server::registration_irssi(string buf, Client *client)
 {
 	map<string, vector<string> > values;
 	vector<string> value = split(buf, '\r');
@@ -96,14 +157,11 @@ void Server::registration_irssi(string buf, Client *client) // registration pars
 		else if (it->first == "USER")
 			client->set_user(it->second[0]);
 	}
-	if (client->is_registered(_password)) {
-		string to_send = ":localhost 001 " + client->get_nick() + "\r\n" + "\"Welcome to the Internet Relay Chat Network " + client->get_nick() + "!" + client->get_user() + "@localhost" + "\"" + "\r\n";
-		ft_send(client->get_fd(), to_send.c_str());
-	}
+	if (client->is_registered(_password))
+		rpl_welcome(client->get_nick(), client->get_user(), client->get_fd());
 }
-//----------------------------------------------------------------------------
-void Server::registration_netcat(string buf, Client *client) // registration parsing
-{
+//------------------------------------------------------------------------------
+void Server::registration_netcat(string buf, Client *client) {
 	buf.erase(buf.length() - 1); // efface le dernier char ""
 	vector<string> tab = split(buf, ' ');
 	if (tab.size() >= 2) {
@@ -119,12 +177,10 @@ void Server::registration_netcat(string buf, Client *client) // registration par
 	}
 	else
 		ft_send(client->get_fd(), "Error: Not enough argument\r\n");    
-	if (client->is_registered(_password)) {
-		string to_send = ":localhost 001 " + client->get_nick() + "\r\n" + "\"Welcome to the Internet Relay Chat Network " + client->get_nick() + "!" + client->get_user() + "@localhost" + "\"" + "\r\n";
-		ft_send(client->get_fd(), to_send.c_str());
-	}
+	if (client->is_registered(_password))
+		rpl_welcome(client->get_nick(), client->get_user(), client->get_fd());
 }
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Server::client_send_msg(int client_fd, string buf, Server *server) {
 	vector<string> tab;
 	if (buf.length() > 510) {
@@ -133,7 +189,7 @@ void Server::client_send_msg(int client_fd, string buf, Server *server) {
 	}
 	if (buf[0] == '\n')
 		return ;
-	if (buf.find("\r\n") != string::npos) { 			//   <------------- IRSSI
+	if (buf.find("\r\n") != string::npos) { 	//   <------------- IRSSI
 		if (!client_list[client_fd]->is_registered(_password))
 			registration_irssi(buf, client_list[client_fd]);
 		else {
@@ -141,7 +197,7 @@ void Server::client_send_msg(int client_fd, string buf, Server *server) {
 			command->exec_command(buf, client_list[client_fd], server);
 		}
 	}
-	else {												//   <------------- NETCAT
+	else {										//   <------------- NETCAT
 		if (!client_list[client_fd]->is_registered(_password))
 			registration_netcat(buf, client_list[client_fd]);
 		else {
@@ -150,7 +206,7 @@ void Server::client_send_msg(int client_fd, string buf, Server *server) {
 		}
 	}
 }
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Server::client_disconnect(int socket_fd) {
 	_clients_fds.push_back(socket_fd);
 	if (client_list[socket_fd]->get_user().empty())
@@ -159,60 +215,4 @@ void Server::client_disconnect(int socket_fd) {
 		cout << client_list[socket_fd]->get_nick() + " is disconnected" << endl;
 	//delete_client_from_server();  //<-------------verifier si cette fct marche 
 }
-//----------------------------------------------------------------------------
-void	Server::send_error(string code, string nickname, string to_send, int client_fd) {
-	string message = ":localhost " + code + " " + nickname + " :" + to_send + "\r\n";
-	ft_send(client_fd, message.c_str());
-}
-//----------------------------------------------------------------------------
-void	Server::send_error_with_arg(string code, string nickname, string arg, string to_send, int client_fd) {
-
-	string message = ":localhost " + code + " " + nickname + " " + arg + " :" + to_send + "\r\n";
-	ft_send(client_fd, message.c_str());
-}
-
-//--------------------------------------------------------------------
-void Server::send_reply(string nickname, string username, string command, string arg, int client_fd)
-{
-	string	message = ":" +  nickname + "!" + username + "@127.0.0.1 " + command + " :" + arg + "\r\n";
-	ft_send(client_fd, message.c_str());
-}
-//----------------------------------------------------------------------------
-Client *Server::get_client(string client_name) {
-	map<int, Client *>::iterator it = client_list.begin();
-	map<int, Client *>::iterator ite = client_list.end();
-
-	for (;it != ite; it++) {
-		if ((*it).second->get_nick() == client_name)
-			return ((*it).second);
-	}
-	return (nullptr);
-}
-//--------------------------------------------------------------------
-Channel *Server::get_channel(string channel_name)
-{
-	for (size_t i = 0; i < get_channels().size(); i++)
-	{
-		if(get_channels()[i]->get_name() == channel_name)
-			return (get_channels()[i]);
-	}
-	return (nullptr);
-}
-//--------------------------------------------------------------------
-bool Server::channel_exist(string channel_name) {
-	for (size_t i = 0; i < get_channels().size(); i++) {
-		if (get_channels()[i]->get_name() == channel_name) {
-			return (true);
-		}
-	}
-	return (false);
-}
-//--------------------------------------------------------------------
-bool Server::client_exist(string client_name) {
-	for (map<int, Client *>::iterator it = client_list.begin(); it != client_list.end(); it++) {
-		if(it->second->get_nick() == client_name)
-			return (true);
-	}
-	return (false);
-}
-//---------------------------------------------------------------------
+//------------------------------------------------------------------------------

@@ -2,6 +2,9 @@
 #include "../../libraries.hpp"
 
 class Client;
+typedef map<int, Client *> client_map;
+typedef client_map::iterator client_map_it;
+
 class Channel
 {
     public:

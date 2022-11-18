@@ -5,10 +5,9 @@
 
 class Server;
 
-//--------------------------------------------//
-//             F U N C T I O N S              //
-//--------------------------------------------//
-
+//******************************//
+// 		  M E T H O D S 	    //
+//******************************//
 void start_server(Server *server, char *port);
 void exec_server(Server *serv);
 void error(string str); // exec error

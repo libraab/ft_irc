@@ -8,7 +8,7 @@ void Cmd::part_cmd(vector<string> arg, Client *client, Server *server) {
     if (server->channel_exist(arg[1])) {
         if (server->get_channel(arg[1])->client_is_in_channel(client->get_fd())) {
             server->get_channel(arg[1])->delete_user_from_channel(client->get_fd());
-            for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
+            for (client_map_it it = server->client_list.begin(); it != server->client_list.end(); it++) {
                 if (it->first != client->get_fd())
 				    server->send_reply(client->get_nick(), client->get_user(), "PART", arg[1], it->first);
 			    else

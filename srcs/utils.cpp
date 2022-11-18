@@ -56,6 +56,11 @@ void    ft_send(int fd, string const & msg)
 	if (send(fd, msg.c_str(), msg.length(), 0) == -1)
 		cerr << "Send failed ❌" << endl;
     cout << "-------------------" << endl;
-    cout << black bg_green << "| SEND TO CLIENT " << fd <<"|" << reset << endl<< msg.substr(0, msg.length()-1) << endl;
+    cout    << black bg_green
+            << "| SEND TO CLIENT "
+            << fd << "|" << reset
+            << endl
+            << msg.substr(0, msg.length()-1)
+    << endl;
     cout << "-------------------" << endl;
 }

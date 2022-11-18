@@ -42,3 +42,14 @@ string const & Client::get_user(void) const {
 string const & Client::get_mode() const {
 	return (_mode);
 }
+//******************************//
+// 		  M E T H O D S 	    //
+//******************************//
+bool Client::is_registered(string const & pass) {
+	return (password_is_set(pass) && nickname_is_set() && username_is_set());
+}
+bool Client::password_is_set(string const & pass) {
+	return (!(_pass.empty()) && _pass == pass);
+}
+bool Client::nickname_is_set() { return (!(_nick.empty())); }
+bool Client::username_is_set() { return (!(_user.empty())); }

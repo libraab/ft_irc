@@ -27,7 +27,7 @@ void Cmd::join_cmd(vector<string> arg, Client *client, Server *server) {
     else {
         Channel *channel = server->get_channel(arg[1]);
         channel->add_user_to_channel(client);
-        for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
+        for (client_map_it it = server->client_list.begin(); it != server->client_list.end(); it++) {
             if (it->second->get_fd() != client->get_fd())
                 server->send_reply(client->get_nick(), client->get_user(), "JOIN", arg[1], it->second->get_fd()); // dire aux autres qlq a join le channel
             else {

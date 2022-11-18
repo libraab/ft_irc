@@ -19,7 +19,6 @@ void Cmd::privmsg_cmd(vector<string> arg, Client *client, Server *server)
 		rep.erase(rep.begin() + 1);
 		arg.insert(arg.begin() + 1, rep);
 		arg.erase(arg.begin() + 2);
-		
 		return;
 	}
 }

@@ -21,7 +21,7 @@ void    print_buf(string const & buf, int client_fd)
         return;
     }
     cout << "--------------------------" << endl;
-    cout << black bg_red << "| RECEIVED FROM CLIENT " << client_fd << " |" << reset << endl;
+    cout << black bg_red << "| CLIENT " << client_fd << " |" << reset << endl;
     cout << "--------------------------" << endl;
     cout << buf ;
     cout << "--------------------------" << endl;
@@ -57,15 +57,23 @@ void start_server(Server *server, char *port_input)
 		FD_ZERO(&read_fds);
 		FD_SET(server->socket_fd, &read_fds);
 		server->delete_client_from_server();
-		for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
+		client_map_it it;
+		for (it = server->client_list.begin();
+			it != server->client_list.end();
+			it++)
+		{
 			client_fd = it->first;
 			FD_SET(client_fd, &read_fds);
 		}
-		if (select(server->client_list.size() + server->socket_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-			failed_function("select");
+		if (select(server->client_list.size() + server->socket_fd + 1,
+					&read_fds, NULL, NULL, NULL) < 0)
+		{ failed_function("select"); }
 		if (FD_ISSET(server->socket_fd, &read_fds))
 			server->add_client_to_server();
-		for (map<int, Client *>::iterator it = server->client_list.begin(); it != server->client_list.end(); it++) {
+		for (it = server->client_list.begin();
+			it != server->client_list.end();
+			it++)
+		{
 			client_fd = it->first;
 			if (FD_ISSET(client_fd, &read_fds)) {
 				if (recv(client_fd, buf, 1024, 0)) { 

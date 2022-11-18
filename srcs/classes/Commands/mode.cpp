@@ -29,7 +29,7 @@ void Cmd::mode_cmd(vector<string> arg, Client *client, Server *server) {
                     if (server->client_exist(arg[1])) // if target exist
                         target = server->get_client(arg[1]);
                     else {
-                        return (server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd()));
+                        server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd());
                         return;
                     }
                 }

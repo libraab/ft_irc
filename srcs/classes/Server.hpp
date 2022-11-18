@@ -6,6 +6,7 @@
 
 class Client;
 class Channel;
+
 class Server
 {
 	public:
@@ -22,7 +23,8 @@ class Server
 		void registration_netcat(string buf, Client *client);
 
 		void exec_command(string buf, int client_fd);
-
+		
+		void rpl_welcome(string nick, string user, int fd);
 		void send_reply(string nickname, string username, string command, string arg, int client_fd);
 		void send_errors(Client *client, string code, string arg, string arg2, int error_type);
 		void send_error(string code, string nickname, string to_send, int client_fd);

@@ -30,7 +30,7 @@ map<int, Client *> &Channel::get_users() {
     return (_users);
 }
 //******************************//
-// 	    F U N C T I O N S	    //
+// 		  M E T H O D S 	    //
 //******************************//
 void Channel::add_user_to_channel(Client *usr) {
     _users.insert(pair<int, Client *>((usr->get_fd()), usr));
@@ -40,13 +40,14 @@ void Channel::delete_user_from_channel(int client_fd) {
 }
 string Channel::display_nicknames() {
     string nicknames;
-    for (map<int, Client *>::iterator it = _users.begin(); it != _users.end(); it++) {
+    for (client_map_it it = _users.begin(); it != _users.end(); it++) {
         nicknames += it->second->get_nick() + ' ';
     }
-    return (nicknames.substr(0, nicknames.length() - 1));// return list des nicknames dans un channel
+    // return channel name without the '\n'
+    return (nicknames.substr(0, nicknames.length() - 1));
 }
 bool Channel::client_is_in_channel(int client_fd) {
-     for (map<int, Client *>::iterator it = _users.begin(); it != _users.end(); it++) {
+     for (client_map_it it = _users.begin(); it != _users.end(); it++) {
         if (it->first == client_fd)
             return (true);
     }
