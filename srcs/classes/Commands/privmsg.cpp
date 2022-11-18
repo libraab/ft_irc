@@ -19,9 +19,8 @@ void Cmd::privmsg_cmd(vector<string> arg, Client *client, Server *server) {
 				server->send_error_with_arg("404", client->get_nick(), arg[1], "Cannot send to channel", client->get_fd());
         }
         else if (server->client_exist(arg[1])) {
-                string to_send = ":" + client->get_nick() + " PRIVMSG #" + arg[1] + " " + arg[2] + "\r\n";
+                string to_send = ":" + client->get_nick() + " PRIVMSG " + arg[1] + " " + arg[2] + "\r\n";
 				ft_send(server->get_client(arg[1])->get_fd(), to_send.c_str());
-
         }
 		else
 			server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd());

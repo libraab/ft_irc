@@ -152,8 +152,13 @@ void Server::registration_irssi(string buf, Client *client)
 				return ;
 			client->set_pass(it->second[0]);
 		}
-		else if (it->first == "NICK")
+		else if (it->first == "NICK") {
 			client->set_nick(it->second[0]);
+			for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
+				if (it->second->get_nick() == client->get_nick())
+					return;
+			}
+		}
 		else if (it->first == "USER")
 			client->set_user(it->second[0]);
 	}
@@ -169,10 +174,14 @@ void Server::registration_netcat(string buf, Client *client) {
 			client->set_pass(tab[1]);
 		}
 		else if (tab[0] == "NICK" && client->password_is_set(_password)) {
-			client->set_nick(tab[1]); // to do :verifier si nick est deja pri ou pas 
+			client->set_nick(tab[1]); 
+			for (client_map_it it = client_list.begin(); it != client_list.end(); it++) {
+				if (it->second->get_nick() == client->get_nick())
+					return;
+			}
 		}
 		else if (tab[0] == "USER" && client->password_is_set(_password)) {
-			client->set_user(tab[1]); // Q? si 2 clients peuvent avoir le meme username
+			client->set_user(tab[1]);
 		}
 	}
 	else
@@ -213,6 +222,6 @@ void Server::client_disconnect(int socket_fd) {
 		cout << "Client is disconnected" << endl;
 	else
 		cout << client_list[socket_fd]->get_nick() + " is disconnected" << endl;
-	//delete_client_from_server();  //<-------------verifier si cette fct marche 
+	delete_client_from_server();  //<-------------verifier si cette fct marche 
 }
 //------------------------------------------------------------------------------
