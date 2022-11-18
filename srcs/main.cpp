@@ -13,3 +13,7 @@ int main(int ac, char **av)
 	server.set_password(string(av[2]));
 	start_server(&server, av[1]);
 }
+
+// topic a gerer
+// PRIVMSG fix : ne prenait en compte que arg[2] .
+// ajouter name et liste: facil

@@ -10,15 +10,29 @@ void Cmd::notice_cmd(vector<string> arg, Client *client, Server *server) {
                     it++)
                 {
                     if (it->first != client->get_fd()) {
-                        string to_send = ":" + client->get_nick() + " PRIVMSG #" + arg[1] + " " + arg[2] + "\r\n";
+						string joined = "";
+						vector<string>::iterator itt = arg.begin() + 2;
+						while (itt != arg.end()){
+							joined += *itt;
+							joined += " ";
+							itt++;
+						}
+                        string to_send = ":" + client->get_nick() + " PRIVMSG #" + arg[1] + " " + joined + "\r\n";
                         send(it->first, to_send.c_str(), to_send.length(), 0);
                     }
                 }
             }
         }
         else if (server->client_exist(arg[1])) {
-                string to_send = ":" + client->get_nick() + " PRIVMSG #" + arg[1] + " " + arg[2] + "\r\n";
-				send(server->get_client(arg[1])->get_fd(), to_send.c_str(), to_send.length(), 0);
+			string joined = "";
+			vector<string>::iterator it = arg.begin() + 2;
+			while (it != arg.end()){
+				joined += *it;
+				joined += " ";
+				it++;
+			}
+            string to_send = ":" + client->get_nick() + " PRIVMSG #" + arg[1] + " " + joined + "\r\n";
+			send(server->get_client(arg[1])->get_fd(), to_send.c_str(), to_send.length(), 0);
 
         }
     }   
