@@ -34,6 +34,12 @@ map<int, Client *> &Channel::get_users() {
 //******************************//
 void Channel::add_user_to_channel(Client *usr) {
     _users.insert(pair<int, Client *>((usr->get_fd()), usr));
+    cout << "user was added" << endl;
+    for (client_map_it it = _users.begin(); it != _users.end(); it++)
+    {
+        cout << "key -->" << it->first << endl;
+        cout << "value" << it->second->get_nick() << endl;
+    }
 }
 void Channel::delete_user_from_channel(int client_fd) {
     _users.erase(client_fd);
