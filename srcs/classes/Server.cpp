@@ -74,6 +74,8 @@ Client *Server::get_client(string client_name) {
 }
 //------------------------------------------------------------------------------
 Channel *Server::get_channel(string channel_name) {
+	if (channel_name.front() == ':' || channel_name.front() == '#')
+		channel_name.erase(channel_name.front());
 	for (size_t i = 0; i < get_channels().size(); i++) {
 		if(get_channels()[i]->get_name() == channel_name)
 			return (get_channels()[i]);
