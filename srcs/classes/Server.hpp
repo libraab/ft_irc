@@ -16,6 +16,7 @@ class Server
 		void set_password(string password);
 		string const &get_password() const;
 		vector<Channel *> &get_channels();
+		string const &get_oper_pass() const;
 
 		void client_send_msg(int client_d, string buf, Server *server);
 		void client_disconnect(int client_fd);
@@ -49,4 +50,5 @@ class Server
 		vector<int>			_clients_fds;
 		string				_password;
 		vector<Channel *>	_channels;
+		string				_oper_pass;
 };

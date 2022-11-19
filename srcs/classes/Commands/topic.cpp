@@ -14,7 +14,6 @@ void Cmd::topic_cmd(vector<string> arg, Client *client, Server *server) {
 			joined += " ";
 			it++;
 		}
-		joined.erase(0,1);
 		if (arg.size() == 2)
 			server->send_reply(client->get_nick(), client->get_user(), "TOPIC", server->get_channel(arg[1])->get_topic(), client->get_fd());
 		if (arg.size() > 2)

@@ -4,6 +4,7 @@
 //   CONSTRUCTOR / DESTRUCTOR	//
 //******************************//
 Server::Server(void) {
+	_oper_pass = "PASS";
 	return;
 }
 Server::~Server(void) {
@@ -23,6 +24,9 @@ string const &Server::get_password(void) const {
 }
 vector<Channel *> &Server::get_channels() {
 	return (_channels);
+}
+string const & Server::get_oper_pass() const {
+	return _oper_pass;
 }
 //******************************//
 // 		  M E T H O D S 	    //
@@ -54,7 +58,7 @@ void	Server::send_error_with_arg(string code, string nickname, string arg, strin
 //------------------------------------------------------------------------------
 void Server::send_reply(string nick, string user, string cmd, string arg, int fd)
 {
-	string	to_send = ":" +  nick + "!" + user + "@127.0.0.1 " + cmd + " :" + arg + "\r\n";
+	string	to_send = ":" +  nick + "!" + user + "@localhost " + cmd + " :" + arg + "\r\n";
 	ft_send(fd, to_send.c_str());
 }
 //------------------------------------------------------------------------------
@@ -169,7 +173,6 @@ void Server::registration_irssi(string buf, Client *client)
 }
 //------------------------------------------------------------------------------
 void Server::registration_netcat(string buf, Client *client) {
-	cout << "in" << endl;
 	buf.erase(buf.length() - 1); 
 	vector<string> tab = split(buf, ' ');
 	if (tab.size() >= 2) {
@@ -190,11 +193,7 @@ void Server::registration_netcat(string buf, Client *client) {
 	else
 		ft_send(client->get_fd(), "Error: Not enough argument\r\n");    
 	if (client->is_registered(_password))
-	{
-		cout << "rpl" << endl;
 		rpl_welcome(client->get_nick(), client->get_user(), client->get_fd());
-
-	}
 }
 //------------------------------------------------------------------------------
 void Server::client_send_msg(int client_fd, string buf, Server *server) {
@@ -229,6 +228,5 @@ void Server::client_disconnect(int socket_fd) {
 		cout << "Client is disconnected" << endl;
 	else
 		cout << client_list[socket_fd]->get_nick() + " is disconnected" << endl;
-	//delete_client_from_server();  //<-------------verifier si cette fct marche 
 }
 //------------------------------------------------------------------------------

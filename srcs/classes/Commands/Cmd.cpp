@@ -32,12 +32,12 @@ void Cmd::exec_command(string buf, Client *client, Server *server) {
         topic_cmd(cmd, client, server);
     else if (cmd[0] == "MODE")
         mode_cmd(cmd, client, server);
-    // else if (cmd[0] == "OPER")
-    //     oper_cmd(cmd, client, server);
-    // else if (cmd[0] == "LIST")
-    //     list_cmd(cmd, client, server);
-    // else if (cmd[0] == "KILL")
-    //     kill_cmd(cmd, client, server);
+    else if (cmd[0] == "NICK")
+        nick_cmd(cmd, client, server);
+    else if (cmd[0] == "LIST")
+        list_cmd(cmd, client, server);
+    else if (cmd[0] == "OPER")
+        oper_cmd(cmd, client, server);
     else if (cmd[0] == "PING")
         ft_send(client->get_fd(), ":localhost PONG :localhost\r\n");
     else

@@ -23,6 +23,9 @@ SRCS_FILES =	main.cpp \
 				classes/Commands/privmsg.cpp\
 				classes/Commands/quit.cpp\
 				classes/Commands/topic.cpp\
+				classes/Commands/nick.cpp \
+				classes/Commands/oper.cpp \
+				classes/Commands/list.cpp \
 
 SRCS 			= $(addprefix $(SRCS_FOLDER),$(SRCS_FILES))
 OBJS			= $(SRCS:.cpp=.o)
