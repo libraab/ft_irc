@@ -160,16 +160,19 @@ void Server::registration_irssi(string buf, Client *client)
 		}
 		else if (it->first == "NICK") {
 			for (client_map_it itt = client_list.begin(); itt != client_list.end(); itt++) {
-				if (itt->second->get_nick() == it->second[0])
+				if (itt->second->get_nick() == it->second[0]) {
+					send_error_with_arg("433", client->get_nick(), it->second[0], "Nickname is already in use", client->get_fd());
 					return;
+				}
 			}
 			client->set_nick(it->second[0]);
 		}
 		else if (it->first == "USER")
 			client->set_user(it->second[0]);
 	}
-	if (client->is_registered(_password))
+	if (client->is_registered(_password)) {
 		rpl_welcome(client->get_nick(), client->get_user(), client->get_fd());
+	}
 }
 //------------------------------------------------------------------------------
 void Server::registration_netcat(string buf, Client *client) {

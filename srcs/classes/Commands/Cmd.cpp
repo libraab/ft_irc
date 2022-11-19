@@ -22,7 +22,7 @@ void Cmd::exec_command(string buf, Client *client, Server *server) {
         join_cmd(cmd, client, server);
     else if (cmd[0] == "QUIT")
         quit_cmd(client, server);
-    else if (cmd[0] == "PART") // with no arg
+    else if (cmd[0] == "PART") 
         part_cmd(cmd, client, server);
     else if (cmd[0] == "PRIVMSG")
         privmsg_cmd(cmd, client, server);
@@ -38,6 +38,8 @@ void Cmd::exec_command(string buf, Client *client, Server *server) {
         list_cmd(cmd, client, server);
     else if (cmd[0] == "OPER")
         oper_cmd(cmd, client, server);
+    else if (cmd[0] == "KILL")
+        kill_cmd(cmd, client, server);
     else if (cmd[0] == "PING")
         ft_send(client->get_fd(), ":localhost PONG :localhost\r\n");
     else

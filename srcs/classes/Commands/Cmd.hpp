@@ -22,9 +22,5 @@ class Cmd
         void nick_cmd(vector<string> arg, Client *client, Server *server);
         void oper_cmd(vector<string> arg, Client *client, Server *server);
         void list_cmd(vector<string> arg, Client *client, Server *server);
-
-        //commandes non urgente a faire
-        // void oper_cmd(vector<string> arg, Client *client, Server *server);
-        // void nick_cmd(vector<string> arg, Client *client, Server *server);
-        // void kill_cmd(vector<string> arg, Client *client, Server *server);
+        void kill_cmd(vector<string> arg, Client *client, Server *server);
 };
