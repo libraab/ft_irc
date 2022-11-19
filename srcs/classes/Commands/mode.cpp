@@ -1,53 +1,74 @@
 #include "Cmd.hpp"
 
 void Cmd::mode_cmd(vector<string> arg, Client *client, Server *server) {
-    if(arg[1][0] == '#') { // channel mode
-        string to_send = ":localhost 221 " + client->get_nick() + " +nt\r\n";
-        send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
+    if (arg.size() == 1) {
+        server->send_error_with_arg("461", client->get_nick(), arg[0], "Not enough parameters", client->get_fd()); 
         return;
-    }   
-    else {  // user mode
-        if (arg.size() != 3) {
-	        server->send_error_with_arg("461", client->get_nick(), arg[0], "Not enough parameters", client->get_fd()); 
-            return;
+    }
+    else if(arg.size() == 2) { // channel mode
+        if (server->channel_exist(arg[1])) {
+            client->set_mode(arg[1]);
+            string to_send = ":localhost 221 " + client->get_nick() + " " + client->get_mode() +  "\r\n";
+            ft_send(client->get_fd(), to_send.c_str());
         }
         else {
-            Client *target = NULL;
-            if (arg[1] == "o") {
-                if (arg[2] == "123") {
-                    string mode = (client->get_mode().substr(1));
-                    client->set_mode("+o" + mode);
-                    string to_send = ":localhost 221 " + client->get_nick() + " " + client->get_mode() + "\r\n";
-                    send(client->get_fd(), to_send.c_str(), to_send.length(), 0);
-                }
-                return;
+            server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd());
+            return;
+        }
+    }   
+    else {  // user mode
+                cout << "line 20" << endl;
+        if (!server->channel_exist(arg[1]) && !server->client_exist(arg[1])) {
+            server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd());
+            return;
+        }
+        else if (arg[2].find('o') == string::npos && arg[2].find('i') == string::npos)
+            return;
+        else if (server->client_exist(arg[1])) {
+            if (client->get_nick() != arg[1] && client->get_mode().find('o') == string::npos) {
+                server->send_error("502", client->get_nick(), "Cannot change mode for other users", client->get_fd());
+                    return;
             }
-            else if (arg[1] == client->get_nick()) // if client wants to change his own mode
-                target = client;
-            else {
-                if (client->get_mode().find("o") != string::npos) { // if client is op
-                    if (server->client_exist(arg[1])) // if target exist
-                        target = server->get_client(arg[1]);
+            else if (client->get_nick() == arg[1] && arg[2].find('o') != string::npos) { // client wants to be oper
+                    if (arg.size() > 3 && arg[3] == "oper") {      
+                        string mode = client->get_mode();
+                        size_t occ = mode.find('o');
+                        if (occ == string::npos)
+                            return;
+                        client->set_mode("o" + mode);
+                cout << "line 39" << endl;
+                        string to_send = ":localhost 221 " + client->get_nick() + " +" + client->get_mode() + "\r\n";
+                        ft_send(client->get_fd(), to_send.c_str());
+                    }
                     else {
-                        server->send_error_with_arg("401", client->get_nick(), arg[1], "No such nick/channel", client->get_fd());
+                        string to_send = "Permission Denied\r\n";
+                        ft_send(client->get_fd(), to_send.c_str());
                         return;
                     }
+            }
+            else {
+                cout << "line 48" << endl;
+                if (arg[2][0] == '-') {
+                    string mode = (server->get_client(arg[1])->get_mode());
+                    size_t occ = mode.find(arg[2][1]);
+                    if (occ == string::npos)
+                        return; // you cant remove something that is not there
+                    mode.erase(occ, 1);
+                    server->get_client(arg[1])->set_mode(mode);
+                cout << "line 58" << endl;
+                    string to_send = ":localhost 221 " + server->get_client(arg[1])->get_nick() + " -" + arg[2][1] + server->get_client(arg[1])->get_mode() + "\r\n";
+                    ft_send(server->get_client(arg[1])->get_fd(), to_send.c_str());
                 }
-                else {
-                    server->send_error("502", client->get_nick(), "Cant change mode for other users", client->get_fd());
-                    return;
+                else if (arg[2][0] == '+') {
+                    string mode = (server->get_client(arg[1])->get_mode());
+                    if (mode.find(arg[2][1]) != string::npos)
+                        return; // why adding something that is already there
+                    server->get_client(arg[1])->set_mode("o" + mode);
+                cout << "line 67" << endl;
+                    string to_send = ":localhost 221 " + server->get_client(arg[1])->get_nick() + " +" + arg[2][1] + server->get_client(arg[1])->get_mode() + "\r\n";
+                    ft_send(server->get_client(arg[1])->get_fd(), to_send.c_str());
                 }
             }
-            string mode = target->get_mode();
-            if (arg[2][0] == '-') {
-                target->set_mode("");
-            }
-            else if (arg[2][0] == '+') {
-                target->set_mode(arg[2].erase(0));
-            }
-            string to_send = ":localhost 221 " + target->get_nick() + " +nt\r\n";
-            send(target->get_fd(), to_send.c_str(), to_send.length(), 0);
         }
     }
-    return ;
 }

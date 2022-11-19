@@ -49,7 +49,6 @@ string Channel::display_nicknames() {
     for (client_map_it it = _users.begin(); it != _users.end(); it++) {
         nicknames += it->second->get_nick() + ' ';
     }
-    // return channel name without the '\n'
     return (nicknames.substr(0, nicknames.length() - 1));
 }
 bool Channel::client_is_in_channel(int client_fd) {

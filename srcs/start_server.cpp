@@ -20,11 +20,8 @@ void    print_buf(string const & buf, int client_fd)
         cout << "BUFF EMPTY" << endl;
         return;
     }
-    cout << "--------------------------" << endl;
     cout << black bg_red << "| CLIENT " << client_fd << " |" << reset << endl;
-    cout << "--------------------------" << endl;
     cout << buf ;
-    cout << "--------------------------" << endl;
 }
 
 void start_server(Server *server, char *port_input)
