@@ -11,19 +11,6 @@ int check_port(char *port_input)
 	return (port);
 }
 
-void    print_buf(string const & buf, int client_fd)
-{
-    if (buf == "PING localhost\r\n" || buf == "\n")
-        return;
-    if (buf.empty())
-    {
-        cout << "BUFF EMPTY" << endl;
-        return;
-    }
-    cout << black bg_red << "| CLIENT " << client_fd << " |" << reset << endl;
-    cout << buf ;
-}
-
 void start_server(Server *server, char *port_input)
 {
 	struct sockaddr_in addr;

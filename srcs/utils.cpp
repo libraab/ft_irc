@@ -49,6 +49,19 @@ void    remove_r(string & str) {
 	}
 }
 
+void    print_buf(string const & buf, int client_fd)
+{
+    if (buf == "PING localhost\r\n" || buf == "\n")
+        return;
+    if (buf.empty())
+    {
+        cout << "BUFF EMPTY" << endl;
+        return;
+    }
+    cout << black bg_red << "| CLIENT " << client_fd << " |" << reset << endl;
+    cout << buf ;
+}
+
 void    ft_send(int fd, string const & msg)
 {
 	if (fd == -1 ||  msg == ":localhost PONG :localhost\r\n")

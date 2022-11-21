@@ -18,7 +18,7 @@ void Cmd::oper_cmd(vector<string> arg, Client *client, Server *server)
                     return ;
                 }
                 string mode = server->get_client(it->second->get_nick())->get_mode();
-                if (mode.find('o') != string::npos) // client  is already operator
+                if (mode.find('o') != string::npos)
                     return;
                 server->get_client(it->second->get_nick())->set_mode("o" + mode);
                 string to_send = ":localhost 221 " + client->get_nick() + " +" + client->get_mode() + "\r\n";
